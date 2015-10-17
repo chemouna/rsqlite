@@ -1,1 +1,3 @@
-include 'rxsqlite-lib', ':app'
+include 'rxsqlite-lib', ':sample'
+
+rootProject.name = 'rxsqlite'
