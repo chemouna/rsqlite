@@ -1,8 +1,19 @@
+# IntelliJ IDEA
+.idea
+*.iml
+
+# Gradle
 .gradle
-/local.properties
-/.idea/workspace.xml
-/.idea/libraries
+gradlew.bat
+build
+local.properties
+reports
+
+# Apple
 .DS_Store
-/build
-/captures
+
+*/build
+sample/build/
+rxsqlite-lib/build/
+
 DoD
