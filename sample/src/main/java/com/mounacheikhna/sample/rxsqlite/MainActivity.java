@@ -1,4 +1,4 @@
-package com.mounacheikhna.rxsqlite;
+package com.mounacheikhna.sample.rxsqlite;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

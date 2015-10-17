@@ -1,29 +1,41 @@
-apply plugin: 'com.android.library'
-
-android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.1"
-
-    defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+buildscript {
+    dependencies {
+        classpath rootProject.ext.androidPlugin
     }
 }
 
+apply plugin: 'com.android.library'
+apply from: rootProject.file('gradle/android-findbugs.gradle')
+
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile rootProject.ext.rxJava
+    compile rootProject.ext.supportAnnotations
 
-    compile 'io.reactivex:rxjava:1.0.14'
+    testCompile rootProject.ext.junit
 
+    androidTestCompile rootProject.ext.supportTestRunner
+    androidTestCompile(rootProject.ext.truth) {
+        exclude group: 'junit' // Android has JUnit built in.
+    }
+}
+
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    }
+
+    lintOptions {
+        textOutput 'stdout'
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+    }
 
 }
