@@ -4,21 +4,23 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import rx.Observable;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Created by cheikhnamouna on 10/17/15.
  */
-//@RunWith(AndroidJUnit4.class)
+@RunWith(AndroidJUnit4.class)
 public final class DatabaseTest {
 
-   /*Database db() {
+   Database db() {
         return new Database(new TestSqliteHelper(InstrumentationRegistry.getContext()));
     }
 
@@ -62,6 +64,5 @@ public final class DatabaseTest {
       }
 
     }
-    */
 
 }
