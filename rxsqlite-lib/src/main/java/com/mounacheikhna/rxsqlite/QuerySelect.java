@@ -41,7 +41,7 @@ final public class QuerySelect { //#FBN
     /**
      * The {@link ResultSet} is transformed before use.
      */
-    private Func1<ResultSet, ? extends ResultSet> resultSetTransform = Functions.identity();
+    private Func1<Cursor, ? extends Cursor> cursorTransform = Functions.identity();
 
     /**
      * Constructor.
@@ -133,15 +133,15 @@ final public class QuerySelect { //#FBN
     }
 
     /**
-     * The ResultSet is transformed by the given transform before the
-     * results are traversed.
+     * The Cursor is transformed by the given transform before the
+     * it is traversed.
      *
      * @param transform
-     *            transforms the ResultSet
+     *            transforms the cursor
      * @return this
      */
-    public Builder resultSetTransform(Func1<ResultSet, ? extends ResultSet> transform) {
-      this.resultSetTransform = transform;
+    public Builder cursorTransform(Func1<Cursor, ? extends Cursor> transform) {
+      this.cursorTransform = transform;
       return this;
     }
 
@@ -149,13 +149,13 @@ final public class QuerySelect { //#FBN
      * Transforms the results using the given function.
      *
      * @param function
-     * @return the results of the query as an Observable
+     * @return the cursor of the query as an Observable
      */
-    public <T> Observable<T> get(ResultSetMapper<? extends T> function) {
-      return get(function, builder, resultSetTransform);
+    public <T> Observable<T> get(CursorMapper<? extends T> function) {
+      return get(function, builder, cursorTransform);
     }
 
-    static <T> Observable<T> get(ResultSetMapper<? extends T> function, QueryBuilder builder,
+    static <T> Observable<T> get(CursorMapper<? extends T> function, QueryBuilder builder,
         Func1<ResultSet, ? extends ResultSet> resultSetTransform) {
       return new QuerySelect(builder.sql(), builder.parameters(), builder.depends(),
           builder.context(), resultSetTransform).execute(function);
@@ -191,15 +191,15 @@ final public class QuerySelect { //#FBN
      * @param cls
      * @return
      */
-    public <T> Observable<T> autoMap(Class<T> cls) {
-      return autoMap(cls, builder, resultSetTransform);
+    /*public <T> Observable<T> autoMap(Class<T> cls) {
+      return autoMap(cls, builder, cursorTransform);
     }
 
     static <T> Observable<T> autoMap(Class<T> cls, QueryBuilder builder,
-        Func1<ResultSet, ? extends ResultSet> resultSetTransform) {
+        Func1<Cursor, ? extends Cursor> cursorTransform) {
       Util.setSqlFromQueryAnnotation(cls, builder);
       return get(Util.autoMap(cls), builder, resultSetTransform);
-    }
+    }*/
 
     /**
      * Automaps the first column of the ResultSet into the target class

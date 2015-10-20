@@ -1,6 +1,6 @@
 package com.mounacheikhna.rxsqlite;
 
-import java.sql.ResultSet;
+import android.database.Cursor;
 import rx.Scheduler;
 import rx.functions.Func1;
 
@@ -30,19 +30,9 @@ final class QueryContext {
     return db.currentScheduler();
   }
 
-  /**
-   * Returns the connection provider for queries with this context.
-   *
-   * @return
-   */
-  ConnectionProvider connectionProvider() {
-    return db.connectionProvider();
-  }
-
-  void beginTransactionObserve() {
+  /*void beginTransactionObserve() {
     db.beginTransactionObserve();
-
-  }
+  }*/
 
   void beginTransactionSubscribe() {
     db.beginTransactionSubscribe();
@@ -52,11 +42,11 @@ final class QueryContext {
     db.endTransactionSubscribe();
   }
 
-  void endTransactionObserve() {
+  /*void endTransactionObserve() {
     db.endTransactionObserve();
-  }
+  }*/
 
-  Func1<ResultSet, ? extends ResultSet> resultSetTransform() {
-    return db.getResultSetTransform();
+  Func1<Cursor, ? extends Cursor> cursorTransform() {
+    return db.getCursorTransform();
   }
 }
