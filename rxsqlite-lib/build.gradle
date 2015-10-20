@@ -9,6 +9,7 @@ apply from: rootProject.file('gradle/android-findbugs.gradle')
 
 dependencies {
   compile rootProject.ext.rxJava
+  compile rootProject.ext.rxJavaExtras
   compile rootProject.ext.supportAnnotations
 
   testCompile rootProject.ext.junit

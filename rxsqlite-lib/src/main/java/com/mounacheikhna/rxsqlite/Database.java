@@ -2,7 +2,7 @@ package com.mounacheikhna.rxsqlite;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
-import java.sql.ResultSet;
+import com.github.davidmoten.rx.Functions;
 import rx.Scheduler;
 import rx.functions.Func0;
 import rx.functions.Func1;
@@ -50,7 +50,12 @@ public final class Database { //#FBN
       return Schedulers.trampoline();
     }
   };
+  private static Func1<Cursor, ? extends Cursor> IDENTITY_TRANSFORM = Functions.identity();
 
+  public Database(final SQLiteOpenHelper sqLiteOpenHelper,
+      Func0<Scheduler> nonTransactionalSchedulerFactory) {
+    this(sqLiteOpenHelper, nonTransactionalSchedulerFactory, IDENTITY_TRANSFORM);
+  }
 
   public Database(SQLiteOpenHelper sqLiteOpenHelper, Func0<Scheduler> nonTransactionalSchedulerFactory,
       Func1<Cursor, ? extends Cursor> cursorTransform) {
