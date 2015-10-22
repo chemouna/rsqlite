@@ -1,8 +1,10 @@
 package com.mounacheikhna.rxsqlite;
 
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.github.davidmoten.rx.Functions;
+import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Func0;
 import rx.functions.Func1;
@@ -14,6 +16,7 @@ import rx.schedulers.Schedulers;
 public final class Database { //#FBN
 
   private SQLiteOpenHelper sqLiteOpenHelper;
+  private SQLiteDatabase sQLiteDatabase;
 
   /**
    * Provides access for queries to a limited subset of {@link Database}
@@ -26,6 +29,15 @@ public final class Database { //#FBN
    * queries.
    */
   private final ThreadLocal<Func0<Scheduler>> currentSchedulerFactory = new ThreadLocal<>();
+
+  //TODO: this will probably cause some problems since sqliteOpenHelper isnt like ConnectionProvider
+  //and may not deal well with being threadLocal
+
+  /**
+   * ThreadLocal storage of the current {@link SQLiteDatabase} to use with
+   * queries.
+   */
+  private final ThreadLocal<SQLiteDatabase> currentSqliteDatabase = new ThreadLocal<>();
 
   /**
    * Schedules non transactional queries.
@@ -89,6 +101,15 @@ public final class Database { //#FBN
     return queryContext;
   }
 
+  public Observable<Boolean> beginTransaction(){
+    return beginTransaction(Observable.empty());
+  }
+
+  private Observable<Boolean> beginTransaction(Observable<?> dependency) {
+    update("begin")
+  }
+
+  //public QueryUpdate.Buil
 
   /**
    * Returns a {@link QuerySelect.Builder} builder based on the given select
@@ -101,6 +122,7 @@ public final class Database { //#FBN
   public QuerySelect.Builder select(String sql) {
     return new QuerySelect.Builder(sql, this);
   }
+
 
   /**
    * Sets the current thread local {@link Scheduler} to be
@@ -129,6 +151,19 @@ public final class Database { //#FBN
     else
       return currentSchedulerFactory.get().call();
   }
+
+  /**
+   * Returns the current {@link SQLiteOpenHelper}.
+   *
+   * @return
+   */
+  SQLiteDatabase currentSqliteDatabase() {
+    if (currentSqliteDatabase.get() == null)
+      return sQLiteDatabase;
+    else
+      return currentSqliteDatabase.get();
+  }
+
 
 
 }

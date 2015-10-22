@@ -1,12 +1,12 @@
 package com.mounacheikhna.rxsqlite;
 
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import rx.Scheduler;
 import rx.functions.Func1;
 
 /**
  * The threading and database connection context for mutliple jdbc queries.
- *
  */
 final class QueryContext {
 
@@ -23,11 +23,17 @@ final class QueryContext {
 
   /**
    * Returns the scheduler service to use to run queries with this context.
-   *
-   * @return
    */
   Scheduler scheduler() {
     return db.currentScheduler();
+  }
+
+  //TODO: should we distinguish with this writable from readable db or just return SqliteOpenHelper ?
+  /**
+   * Returns the sqlite database for queries with this context.
+   */
+  SQLiteDatabase sQLiteDatabase() {
+    return db.currentSqliteDatabase();
   }
 
   /*void beginTransactionObserve() {

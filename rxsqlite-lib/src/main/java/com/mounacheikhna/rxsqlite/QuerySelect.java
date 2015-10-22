@@ -2,15 +2,16 @@ package com.mounacheikhna.rxsqlite;
 
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import com.github.davidmoten.rx.Functions;
 import java.sql.ResultSet;
+import java.util.List;
 import rx.Observable;
 import rx.functions.Func1;
-import rx.functions.Functions;
 
 /**
  * Created by cheikhnamouna on 10/18/15.
  */
-final public class QuerySelect { //#FBN
+final public class QuerySelect implements Query { //#FBN
 
   private final Observable<Parameter> parameters;
   private final QueryContext context;
@@ -27,6 +28,85 @@ final public class QuerySelect { //#FBN
     this.context = context;
     this.cursorTransform = cursorTransform;
   }
+
+  @Override
+  public String sql() {
+    return sqliteQuery.sql();
+  }
+
+  @Override
+  public QueryContext context() {
+    return context;
+  }
+
+  @Override
+  public Observable<Parameter> parameters() {
+    return parameters;
+  }
+
+  @Override
+  public List<String> names() {
+    return sqliteQuery.names();
+  }
+
+  @Override
+  public String toString() {
+    return "QuerySelect [sql=" + sql() + "]";
+  }
+
+  @Override
+  public Observable<?> depends() {
+    return depends;
+  }
+
+  //TODO: maybe this should somehow a map ?
+  Func1<Cursor, ? extends Cursor> cursorTransform() {
+    return cursorTransform;
+  }
+
+  /**
+   * Returns the results of running a select query with all sets of
+   * parameters.
+   *
+   * @return
+   */
+  public <T> Observable<T> execute(CursorMapper<? extends T> function) {
+    return bufferedParameters(this)
+        // execute once per set of parameters
+        .concatMap(executeOnce(function));
+  }
+
+  /**
+   * Returns a {@link Func1} that itself returns the results of pushing one
+   * set of parameters through a select query.
+   *
+   * @param query
+   * @return
+   */
+  private <T> Func1<List<Parameter>, Observable<T>> executeOnce(
+      final CursorMapper<? extends T> function) {
+    return new Func1<List<Parameter>, Observable<T>>() {
+      @Override
+      public Observable<T> call(List<Parameter> params) {
+        return executeOnce(params, function);
+      }
+    };
+  }
+
+  /**
+   * Returns an Observable of the results of pushing one set of parameters
+   * through a select query.
+   *
+   * @param params
+   *            one set of parameters to be run with the query
+   * @return
+   */
+  private <T> Observable<T> executeOnce(final List<Parameter> params,
+      CursorMapper<? extends T> function) {
+    return QuerySelectOnSubscribe.execute(this, params, function)
+        .subscribeOn(context.scheduler());
+  }
+
 
   /**
    * Builds a {@link QuerySelect}.
@@ -156,9 +236,9 @@ final public class QuerySelect { //#FBN
     }
 
     static <T> Observable<T> get(CursorMapper<? extends T> function, QueryBuilder builder,
-        Func1<ResultSet, ? extends ResultSet> resultSetTransform) {
+        Func1<Cursor, ? extends Cursor> cursorTransform) {
       return new QuerySelect(builder.sql(), builder.parameters(), builder.depends(),
-          builder.context(), resultSetTransform).execute(function);
+          builder.context(), cursorTransform).execute(function);
     }
 
     /**
@@ -360,6 +440,174 @@ final public class QuerySelect { //#FBN
      */
     public OperatorBuilder<Observable<Object>> parameterListOperator() {
       return new OperatorBuilder<Observable<Object>>(this, OperatorType.PARAMETER_LIST);
+    }
+
+  }
+
+  /**
+   * Builder pattern for select query {@link Observable.Operator}.
+   */
+  public static class OperatorBuilder<R> {
+
+    private final Builder builder;
+    private final OperatorType operatorType;
+
+    /**
+     * Constructor.
+     *
+     * @param builder
+     * @param operatorType
+     */
+    public OperatorBuilder(Builder builder, OperatorType operatorType) {
+      this.builder = builder;
+      this.operatorType = operatorType;
+    }
+
+    /**
+     * Transforms the results using the given function.
+     *
+     * @param function
+     * @return
+     */
+    public <T> Observable.Operator<T, R> get(ResultSetMapper<? extends T> function) {
+      return new QuerySelectOperator<T, R>(builder, function, operatorType);
+    }
+
+    /**
+     * See {@link Builder#autoMap(Class)}.
+     *
+     * @param cls
+     * @return
+     */
+    public <S> Observable.Operator<S, R> autoMap(Class<S> cls) {
+      return get(Util.autoMap(cls));
+    }
+
+    /**
+     * Automaps the first column of the ResultSet into the target class
+     * <code>cls</code>.
+     *
+     * @param cls
+     * @return
+     */
+    public <S> Observable.Operator<S, R> getAs(Class<S> cls) {
+      return get(Tuples.single(cls));
+    }
+
+    /**
+     * Automaps all the columns of the {@link ResultSet} into the target
+     * class <code>cls</code>. See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls
+     * @return
+     */
+    public <S> Observable.Operator<TupleN<S>, R> getTupleN(Class<S> cls) {
+      return get(Tuples.tupleN(cls));
+    }
+
+    /**
+     * Automaps all the columns of the {@link ResultSet} into {@link Object}
+     * . See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls
+     * @return
+     */
+    public <S> Observable.Operator<TupleN<Object>, R> getTupleN() {
+      return get(Tuples.tupleN(Object.class));
+    }
+
+    /**
+     * Automaps the columns of the {@link ResultSet} into the specified
+     * classes. See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls1
+     * @param cls2
+     * @return
+     */
+    public <T1, T2> Observable.Operator<Tuple2<T1, T2>, R> getAs(Class<T1> cls1, Class<T2> cls2) {
+      return get(Tuples.tuple(cls1, cls2));
+    }
+
+    /**
+     * Automaps the columns of the {@link ResultSet} into the specified
+     * classes. See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls1
+     * @param cls2
+     * @param cls3
+     * @return
+     */
+    public <T1, T2, T3> Observable.Operator<Tuple3<T1, T2, T3>, R> getAs(Class<T1> cls1, Class<T2> cls2,
+        Class<T3> cls3) {
+      return get(Tuples.tuple(cls1, cls2, cls3));
+    }
+
+    /**
+     * Automaps the columns of the {@link ResultSet} into the specified
+     * classes. See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls1
+     * @param cls2
+     * @param cls3
+     * @param cls4
+     * @return
+     */
+    public <T1, T2, T3, T4> Observable.Operator<Tuple4<T1, T2, T3, T4>, R> getAs(Class<T1> cls1,
+        Class<T2> cls2, Class<T3> cls3, Class<T4> cls4) {
+      return get(Tuples.tuple(cls1, cls2, cls3, cls4));
+    }
+
+    /**
+     * Automaps the columns of the {@link ResultSet} into the specified
+     * classes. See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls1
+     * @param cls2
+     * @param cls3
+     * @param cls4
+     * @param cls5
+     * @return
+     */
+    public <T1, T2, T3, T4, T5> Observable.Operator<Tuple5<T1, T2, T3, T4, T5>, R> getAs(Class<T1> cls1,
+        Class<T2> cls2, Class<T3> cls3, Class<T4> cls4, Class<T5> cls5) {
+      return get(Tuples.tuple(cls1, cls2, cls3, cls4, cls5));
+    }
+
+    /**
+     * Automaps the columns of the {@link ResultSet} into the specified
+     * classes. See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls1
+     * @param cls2
+     * @param cls3
+     * @param cls4
+     * @param cls5
+     * @param cls6
+     * @return
+     */
+    public <T1, T2, T3, T4, T5, T6> Observable.Operator<Tuple6<T1, T2, T3, T4, T5, T6>, R> getAs(
+        Class<T1> cls1, Class<T2> cls2, Class<T3> cls3, Class<T4> cls4, Class<T5> cls5,
+        Class<T6> cls6) {
+      return get(Tuples.tuple(cls1, cls2, cls3, cls4, cls5, cls6));
+    }
+
+    /**
+     * Automaps the columns of the {@link ResultSet} into the specified
+     * classes. See {@link #autoMap(Class) autoMap()}.
+     *
+     * @param cls1
+     * @param cls2
+     * @param cls3
+     * @param cls4
+     * @param cls5
+     * @param cls6
+     * @param cls7
+     * @return
+     */
+    public <T1, T2, T3, T4, T5, T6, T7> Observable.Operator<Tuple7<T1, T2, T3, T4, T5, T6, T7>, R> getAs(
+        Class<T1> cls1, Class<T2> cls2, Class<T3> cls3, Class<T4> cls4, Class<T5> cls5,
+        Class<T6> cls6, Class<T7> cls7) {
+      return get(Tuples.tuple(cls1, cls2, cls3, cls4, cls5, cls6, cls7));
     }
 
   }

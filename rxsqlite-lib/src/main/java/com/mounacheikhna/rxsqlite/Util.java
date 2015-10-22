@@ -19,5 +19,50 @@ public final class Util {
     }
   }
 
+  /**
+   * Count the number of sqlite parameters in a sql statement.
+   *
+   * @param query
+   *            .sql()
+   * @return
+   */
+  static int parametersCount(Query query) {
+    if (query.names().isEmpty())
+      return countQuestionMarkParameters(query.sql());
+    else
+      return query.names().size();
+  }
+
+  // Visible for testing
+  static int countQuestionMarkParameters(String sql) {
+    // was originally using regular expressions, but they didn't work well
+    // for ignoring parameter-like strings inside quotes.
+    int count = 0;
+    int length = sql.length();
+    boolean inSingleQuote = false;
+    boolean inDoubleQuote = false;
+    for (int i = 0; i < length; i++) {
+      char c = sql.charAt(i);
+      if (inSingleQuote) {
+        if (c == '\'') {
+          inSingleQuote = false;
+        }
+      } else if (inDoubleQuote) {
+        if (c == '"') {
+          inDoubleQuote = false;
+        }
+      } else {
+        if (c == '\'') {
+          inSingleQuote = true;
+        } else if (c == '"') {
+          inDoubleQuote = true;
+        } else if (c == '?') {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
 
 }
