@@ -64,6 +64,10 @@ public final class Database { //#FBN
   };
   private static Func1<Cursor, ? extends Cursor> IDENTITY_TRANSFORM = Functions.identity();
 
+  public Database(SQLiteOpenHelper sqLiteOpenHelper) {
+    this(sqLiteOpenHelper, null);
+  }
+
   public Database(final SQLiteOpenHelper sqLiteOpenHelper,
       Func0<Scheduler> nonTransactionalSchedulerFactory) {
     this(sqLiteOpenHelper, nonTransactionalSchedulerFactory, IDENTITY_TRANSFORM);
@@ -101,13 +105,13 @@ public final class Database { //#FBN
     return queryContext;
   }
 
-  public Observable<Boolean> beginTransaction(){
+  /*public Observable<Boolean> beginTransaction(){
     return beginTransaction(Observable.empty());
   }
 
   private Observable<Boolean> beginTransaction(Observable<?> dependency) {
     update("begin")
-  }
+  }*/
 
   //public QueryUpdate.Buil
 

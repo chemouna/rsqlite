@@ -1,6 +1,5 @@
 package com.mounacheikhna.rxsqlite;
 
-import java.util.List;
 import rx.Observable;
 
 import static com.mounacheikhna.rxsqlite.RxUtil.concatButIgnoreFirstSequence;
@@ -27,7 +26,7 @@ public class Queries {
    * @param query
    * @return
    */
-  static Observable<List<Parameter>> bufferedParameters(Query query) {
+  /*static Observable<List<Parameter>> bufferedParameters(Query query) {
     int numParamsPerQuery = numParamsPerQuery(query);
     if (numParamsPerQuery > 0)
       // we don't check that parameters is empty after this because by
@@ -37,7 +36,7 @@ public class Queries {
           .buffer(numParamsPerQuery);
     else
       return singleIntegerAfterDependencies(query).map(TO_EMPTY_PARAMETER_LIST);
-  }
+  }*/
 
   /**
    * Returns the number of parameters required to run this query once. Roughly

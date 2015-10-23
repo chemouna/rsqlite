@@ -21,7 +21,8 @@ import static junit.framework.Assert.assertEquals;
 public final class DatabaseTest {
 
    Database db() {
-        return new Database(new TestSqliteHelper(InstrumentationRegistry.getContext()));
+     TestSqliteHelper testSqliteHelper = new TestSqliteHelper(InstrumentationRegistry.getContext());
+     return new Database(testSqliteHelper);
     }
 
     @Test
