@@ -1,10 +1,31 @@
 package com.mounacheikhna.rxsqlite;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import rx.Observable;
+import rx.functions.Func1;
 
 import static com.mounacheikhna.rxsqlite.RxUtil.concatButIgnoreFirstSequence;
 
 public class Queries {
+
+  private static final Func1<Parameter, Observable<Parameter>> FLATTEN_NAMED_MAPS = new Func1<Parameter, Observable<Parameter>>() {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Observable<Parameter> call(Parameter p) {
+      if (p.value() instanceof Map) {
+        List<Parameter> list = new ArrayList<Parameter>();
+        for (Map.Entry<String, ?> entry : ((Map<String, ?>) p.value()).entrySet()) {
+          list.add(new Parameter(entry.getKey(), entry.getValue()));
+        }
+        return Observable.from(list);
+      } else
+        return Observable.from(Arrays.asList(p));
+    }
+  };
 
   /**
    * Returns query.getParameters() {@link Observable} but only after query
@@ -26,7 +47,7 @@ public class Queries {
    * @param query
    * @return
    */
-  /*static Observable<List<Parameter>> bufferedParameters(Query query) {
+  static Observable<List<Parameter>> bufferedParameters(Query query) {
     int numParamsPerQuery = numParamsPerQuery(query);
     if (numParamsPerQuery > 0)
       // we don't check that parameters is empty after this because by
@@ -36,7 +57,7 @@ public class Queries {
           .buffer(numParamsPerQuery);
     else
       return singleIntegerAfterDependencies(query).map(TO_EMPTY_PARAMETER_LIST);
-  }*/
+  }
 
   /**
    * Returns the number of parameters required to run this query once. Roughly

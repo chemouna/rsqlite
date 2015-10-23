@@ -16,6 +16,8 @@ import java.util.List;
 import rx.Observable;
 import rx.functions.Func1;
 
+import static com.mounacheikhna.rxsqlite.Queries.bufferedParameters;
+
 /**
  * Created by cheikhnamouna on 10/18/15.
  */

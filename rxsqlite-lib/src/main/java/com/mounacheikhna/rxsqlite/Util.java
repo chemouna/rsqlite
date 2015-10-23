@@ -16,7 +16,10 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.io.IOUtils;
+import rx.functions.Func1;
 
 /**
  * Created by cheikhnamouna on 10/19/15.
@@ -150,6 +153,16 @@ public final class Util {
     //temp
     return null;
   }
+
+  /**
+   * Returns the empty list whenever called.
+   */
+  static Func1<Integer, List<Parameter>> TO_EMPTY_PARAMETER_LIST = new Func1<Integer, List<Parameter>>() {
+    @Override
+    public List<Parameter> call(Integer n) {
+      return Collections.emptyList();
+    };
+  };
 
   /**
    * Returns the String of a {@link Clob} and frees the clob resource.
